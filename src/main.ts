@@ -1,5 +1,6 @@
-import { getFlowers } from "./components/flowers";
-import { getTerrain, updateTerrain } from "./components/terrain";
+import { getFlowers, updateFlowers } from "./components/flowers";
+import { createSphere } from "./components/sphere";
+import { createTerrain, getTerrain, updateTerrain } from "./components/terrain";
 import "./style.css";
 import * as THREE from "three";
 
@@ -17,8 +18,8 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 // Располагаем камеру
-camera.position.set(0, 2, 5);
-camera.lookAt(new THREE.Vector3(0, 2, -1));
+camera.position.set(0, 50, -180);
+camera.lookAt(new THREE.Vector3(0, 70, -2));
 
 // Настраиваем рендерер
 const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
@@ -35,8 +36,8 @@ function onWindowResize() {
 }
 
 // createTerrain(scene);
-getTerrain(scene);
-getFlowers(scene);
+// getTerrain(scene);
+// getFlowers(scene);
 
 // Добавляем свет
 
@@ -47,17 +48,6 @@ scene.add(ambientLight);
 // Directional Light - направленный свет (например, Солнце)
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
 directionalLight.position.set(50, 100, 50);
-directionalLight.castShadow = true;
-
-// Настройка параметров тени для направленного света
-directionalLight.shadow.mapSize.width = 1024;
-directionalLight.shadow.mapSize.height = 1024;
-directionalLight.shadow.camera.left = -100;
-directionalLight.shadow.camera.right = 100;
-directionalLight.shadow.camera.top = 100;
-directionalLight.shadow.camera.bottom = -100;
-directionalLight.shadow.camera.near = 0.5;
-directionalLight.shadow.camera.far = 500;
 
 scene.add(directionalLight);
 
@@ -68,23 +58,22 @@ scene.fog = new THREE.Fog(0xcce0ff, 10, 500);
 renderer.setClearColor(scene.fog.color);
 
 const clock = new THREE.Clock();
+const sphereMaterial = createSphere(scene);
 
 // Анимационный цикл
 function animate() {
   requestAnimationFrame(animate);
-
+  const elapsedTime = clock.getElapsedTime();
   // Скорость движения камеры (единиц в секунду)
-  const speed = 2;
+  const speed = 15;
 
   // Вычисляем время, прошедшее с предыдущего кадра
   const delta = clock.getDelta();
-  // Обновляем позицию камеры
-  camera.position.z -= speed * delta;
+  sphereMaterial.material.uniforms.u_time.value = elapsedTime;
+  sphereMaterial.rotateX(-delta * 0.05);
 
-  // Обновляем позицию цели взгляда камеры, если необходимо
-  // Например, чтобы камера всегда смотрела вперед
-  camera.lookAt(camera.position.x, camera.position.y, camera.position.z - 1);
-  updateTerrain(camera);
+  // Обновляем позицию камеры
+  // camera.position.z += speed * delta;
 
   renderer.render(scene, camera);
 }
